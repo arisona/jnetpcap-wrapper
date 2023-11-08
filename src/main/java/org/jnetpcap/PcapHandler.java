@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
  * @author repos@slytechs.com
  */
 public interface PcapHandler {
-
+	
 	/**
 	 * A safe packet handler which receives copies of packets in a byte array.
 	 *
@@ -33,6 +33,15 @@ public interface PcapHandler {
 	 */
 	@FunctionalInterface
 	public interface OfArray<U> extends PcapHandler {
+		
+		/** Empty/No-op callback handler. */
+		OfArray<?> EMPTY = (u, h, p) -> {};
+		
+		/** Empty/No-op callback handler. */
+		@SuppressWarnings("unchecked")
+		static <U> OfArray<U> empty() {
+			return (OfArray<U>) EMPTY;
+		}
 
 		/**
 		 * Packet handler method. This method get called to handle or consume a pcap
@@ -53,6 +62,15 @@ public interface PcapHandler {
 	 */
 	@FunctionalInterface
 	public interface OfByteBuffer<U> extends PcapHandler {
+		
+		/** Empty/No-op callback handler. */
+		OfByteBuffer<?> EMPTY = (u, h, p) -> {};
+		
+		/** Empty/No-op callback handler. */
+		@SuppressWarnings("unchecked")
+		static <U> OfByteBuffer<U> empty() {
+			return (OfByteBuffer<U>) EMPTY;
+		}
 
 		/**
 		 * Packet handler method. This method get called to handle or consume a pcap
@@ -76,6 +94,15 @@ public interface PcapHandler {
 	 */
 	@FunctionalInterface
 	public interface OfMemorySegment<U> extends PcapHandler {
+		
+		/** Empty/No-op callback handler. */
+		OfMemorySegment<?> EMPTY = (u, h, p) -> {};
+		
+		/** Empty/No-op callback handler. */
+		@SuppressWarnings("unchecked")
+		static <U> OfMemorySegment<U> empty() {
+			return (OfMemorySegment<U>) EMPTY;
+		}
 
 		/**
 		 * Packet handler method. This method get called to handle or consume a pcap
@@ -94,6 +121,9 @@ public interface PcapHandler {
 	 */
 	@FunctionalInterface
 	public interface NativeCallback extends PcapHandler {
+		
+		/** Empty/No-op native callback handler. */
+		NativeCallback EMPTY = (u, h, p) -> {};
 
 		/**
 		 * Receive native packets.

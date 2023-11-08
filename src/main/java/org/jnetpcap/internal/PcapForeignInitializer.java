@@ -22,8 +22,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.jnetpcap.Pcap.LibraryPolicy;
-import org.jnetpcap.PcapException;
 import org.jnetpcap.PcapErrorHandler;
+import org.jnetpcap.PcapException;
 
 /**
  * Pcap specific {@code ForeignInitializer} used to facilitate loading native
@@ -70,7 +70,8 @@ public class PcapForeignInitializer extends ForeignInitializer<PcapForeignDownca
 					.formatted(up, initializerName));
 
 		if (!up.isEmpty())
-			throw new NoSuchMethodError(PcapErrorHandler.getString("pcap.initiazlier.policy.failure") //$NON-NLS-1$
+//			throw new NoSuchMethodError(PcapErrorHandler.getString("pcap.initiazlier.policy.failure") //$NON-NLS-1$
+			throw new NoSuchMethodError("up=%s, class=%s"
 					.formatted(up, initializerName));
 	}
 

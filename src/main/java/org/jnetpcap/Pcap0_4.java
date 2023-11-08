@@ -20,7 +20,6 @@ import static org.jnetpcap.constant.PcapConstants.*;
 import static org.jnetpcap.internal.UnsafePcapHandle.*;
 
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.util.Objects;
@@ -145,14 +144,6 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	private static final PcapForeignDowncall pcap_stats;
 
 	/**
-	 * The Constant pcap_next.
-	 *
-	 * @see {@code const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)}
-	 * @since libpcap 0.4
-	 */
-	private static final PcapForeignDowncall pcap_next;
-
-	/**
 	 * The Constant pcap_perror.
 	 *
 	 * @see {@code void pcap_perror(pcap_t *, const char *)}
@@ -247,7 +238,6 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 			pcap_setfilter     = foreign.downcall("pcap_setfilter(AA)I"); //$NON-NLS-1$
 			pcap_is_swapped    = foreign.downcall("pcap_is_swapped(A)I"); //$NON-NLS-1$
 			pcap_stats         = foreign.downcall("pcap_stats(AA)I"); //$NON-NLS-1$
-			pcap_next          = foreign.downcall("pcap_next(AA)A"); //$NON-NLS-1$
 			pcap_perror        = foreign.downcall("pcap_perror(AA)V"); //$NON-NLS-1$
 			pcap_lookupnet     = foreign.downcall("pcap_lookupnet(AAAA)I"); //$NON-NLS-1$
 			pcap_snapshot      = foreign.downcall("pcap_snapshot(A)I"); //$NON-NLS-1$
@@ -501,13 +491,6 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	}
 
 	/**
-	 * The pcap header buffer for use with next() call. Header and packet references
-	 * are valid only from call to call and then out of pcap arena.
-	 */
-	private final MemorySegment PCAP0_4_HEADER_BUFFER = Arena.ofAuto()
-			.allocate(PcapHeaderABI.nativeAbi().headerLength());
-
-	/**
 	 * Packet dispatcher implementation. The standard dispatcher just calls
 	 * pcap_loop and pcap_dispatch native calls. Other dispatchers may perform
 	 * additional processing on packets before dispatching to callback handlers.
@@ -641,28 +624,21 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
 		return dispatcher.dispatchNative(count, (u, h, p) -> {
-			int caplen = dispatcher.captureLength(h);
-			int hdrlen = dispatcher.headerLength(h);
 
-			/* Only valid for duration of this callback */
-			try (var arena = newArena()) {
+			/*
+			 * If user value is address we forward the upcall user address.
+			 * 
+			 * Although with default dispatcher, the loop(user) value will always be the
+			 * same as dispatched, but we override implementations which may provide a
+			 * different user value between downcall and upcall.
+			 */
+			@SuppressWarnings("unchecked")
+			U usr = (aUser == NULL) ? user : (U) u;
 
-				MemorySegment mHdr = h.reinterpret(hdrlen, arena, __ ->{});
-				MemorySegment mPkt = p.reinterpret(caplen, arena, __ ->{});
+			handler.handleSegment(usr, h, p);
 
-				/*
-				 * If user value is address we forward the upcall user address.
-				 * 
-				 * Although with default dispatcher, the loop(user) value will always be the
-				 * same as dispatched, but we override implementations which may provide a
-				 * different user value between downcall and upcall.
-				 */
-				@SuppressWarnings("unchecked")
-				U usr = (aUser == NULL) ? user : (U) u;
-
-				handler.handleSegment(usr, mHdr, mPkt);
-			}
 		}, aUser);
+
 	}
 
 	/**
@@ -686,7 +662,8 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	}
 
 	/**
-	 * @see org.jnetpcap.Pcap#dispatch(int, org.jnetpcap.PcapHandler.NativeCallback, java.lang.foreign.MemorySegment)
+	 * @see org.jnetpcap.Pcap#dispatch(int, org.jnetpcap.PcapHandler.NativeCallback,
+	 *      java.lang.foreign.MemorySegment)
 	 */
 	@Override
 	public int dispatch(int count, PcapHandler.NativeCallback handler, MemorySegment user) {
@@ -709,17 +686,15 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
 		return dispatcher.dispatchNative(count, (u, header, bytes) -> {
-			try (var arena = newArena()) {
-				PcapHeader hdr = new PcapHeader(super.pcapHeaderABI, header, arena);
+			PcapHeader hdr = new PcapHeader(super.pcapHeaderABI, header);
 
-				int caplen = hdr.captureLength();
-				assert caplen < PcapConstants.MAX_SNAPLEN : "caplen/wirelen out of range " + caplen;
+			int caplen = hdr.captureLength();
+			assert caplen < PcapConstants.MAX_SNAPLEN : "caplen/wirelen out of range " + caplen;
 
-				byte[] packet = bytes.reinterpret(caplen)
-						.toArray(ValueLayout.JAVA_BYTE);
+			byte[] packet = bytes.reinterpret(caplen)
+					.toArray(ValueLayout.JAVA_BYTE);
 
-				handler.handleArray(user, hdr, packet);
-			}
+			handler.handleArray(user, hdr, packet);
 		}, aUser);
 	}
 
@@ -830,7 +805,8 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	}
 
 	/**
-	 * @see org.jnetpcap.Pcap#loop(int, org.jnetpcap.PcapHandler.NativeCallback, java.lang.foreign.MemorySegment)
+	 * @see org.jnetpcap.Pcap#loop(int, org.jnetpcap.PcapHandler.NativeCallback,
+	 *      java.lang.foreign.MemorySegment)
 	 */
 	@Override
 	public int loop(int count, PcapHandler.NativeCallback handler, MemorySegment user) {
@@ -853,49 +829,40 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
 		return dispatcher.loopNative(count, (u, header, bytes) -> {
-			try (var arena = newArena()) {
-				PcapHeader hdr = new PcapHeader(super.pcapHeaderABI, header, arena);
+			PcapHeader hdr = new PcapHeader(super.pcapHeaderABI, header);
 
-				int caplen = hdr.captureLength();
-				assert caplen < PcapConstants.MAX_SNAPLEN : "caplen/wirelen out of range " + caplen;
+			int caplen = hdr.captureLength();
+			assert caplen < PcapConstants.MAX_SNAPLEN : "caplen/wirelen out of range " + caplen;
 
-				byte[] packet = bytes.reinterpret(caplen)
-						.toArray(ValueLayout.JAVA_BYTE);
+			byte[] packet = bytes.reinterpret(caplen)
+					.toArray(ValueLayout.JAVA_BYTE);
 
-				handler.handleArray(user, hdr, packet);
-			}
+			handler.handleArray(user, hdr, packet);
 		}, aUser);
 	}
 
 	/**
-	 * @see org.jnetpcap.Pcap#loop(int, org.jnetpcap.PcapHandler.OfMemorySegment, java.lang.Object)
+	 * @see org.jnetpcap.Pcap#loop(int, org.jnetpcap.PcapHandler.OfMemorySegment,
+	 *      java.lang.Object)
 	 */
 	@Override
 	public <U> int loop(int count, PcapHandler.OfMemorySegment<U> handler, U user) {
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
 		return dispatcher.loopNative(count, (u, h, p) -> {
-			int caplen = dispatcher.captureLength(h);
-			int hdrlen = dispatcher.headerLength(h);
 
-			/* Only valid for duration of this callback */
-			try (var arena = newArena()) {
+			/*
+			 * If user value is address we forward the upcall user address.
+			 * 
+			 * Although with default dispatcher, the loop(user) value will always be the
+			 * same as dispatched, but we override implementations which may provide a
+			 * different user value between downcall and upcall.
+			 */
+			@SuppressWarnings("unchecked")
+			U usr = (aUser == NULL) ? user : (U) u;
 
-				MemorySegment mHdr = h.reinterpret(hdrlen, arena, __ ->{});
-				MemorySegment mPkt = p.reinterpret(caplen, arena, __ ->{});
+			handler.handleSegment(usr, h, p);
 
-				/*
-				 * If user value is address we forward the upcall user address.
-				 * 
-				 * Although with default dispatcher, the loop(user) value will always be the
-				 * same as dispatched, but we override implementations which may provide a
-				 * different user value between downcall and upcall.
-				 */
-				@SuppressWarnings("unchecked")
-				U usr = (aUser == NULL) ? user : (U) u;
-
-				handler.handleSegment(usr, mHdr, mPkt);
-			}
 		}, aUser);
 	}
 

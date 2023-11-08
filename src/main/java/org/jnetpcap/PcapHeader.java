@@ -17,7 +17,6 @@ package org.jnetpcap;
 
 import static org.jnetpcap.internal.PcapHeaderABI.*;
 
-import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.time.Instant;
@@ -383,19 +382,6 @@ public final class PcapHeader {
 		this.buffer = headerBuffer.order(abi.order());
 	}
 
-	/**
-	 * Instantiates a new pcap header.
-	 *
-	 * @param abi           the abi
-	 * @param headerAddress the header address
-	 * @param arena       the session
-	 */
-	PcapHeader(PcapHeaderABI abi, MemorySegment headerAddress, Arena arena) {
-		this.abi = abi;
-		this.buffer = headerAddress.reinterpret(HEADER_LEN_MAX, arena, __ -> {})
-				.asByteBuffer()
-				.order(abi.order());
-	}
 
 	/**
 	 * Instantiates a new pcap header.

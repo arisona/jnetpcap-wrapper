@@ -947,7 +947,7 @@ class LibpcapApiTest extends AbstractTestBase {
 
 		final int PACKET_COUNT = 5;
 		final int LOOP_OK_STATUS = 0;
-		final PcapHandler.NativeCallback HANDLER = (user, header, packet) -> {/* discard */};
+		final PcapHandler.NativeCallback HANDLER = PcapHandler.NativeCallback.EMPTY;
 
 		assertEquals(LOOP_OK_STATUS, pcap.loopWithAccessToRawPacket(PACKET_COUNT, HANDLER));
 	}

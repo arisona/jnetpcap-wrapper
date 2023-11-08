@@ -16,8 +16,10 @@
 package org.jnetpcap.internal;
 
 import static java.nio.ByteOrder.*;
+import static org.jnetpcap.internal.ForeignUtils.*;
 
 import java.io.IOException;
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout.OfInt;
 import java.nio.ByteBuffer;
@@ -52,33 +54,34 @@ import static java.lang.foreign.ValueLayout.*;
 public enum PcapHeaderABI {
 
 	/** The compact le. */
-	COMPACT_LE("CL", 0, 4, 8, 12, LITTLE_ENDIAN), /** The compact be. */
- // 16 byte size
-	COMPACT_BE("CB", 0, 4, 8, 12, BIG_ENDIAN), 
- /** The padded le. */
- // 16 byte size
-	PADDED_LE("PL", 0, 8, 16, 20, LITTLE_ENDIAN), 
- /** The padded be. */
- // 24 byte size due to padding
+	COMPACT_LE("CL", 0, 4, 8, 12, LITTLE_ENDIAN),
+	/** The compact be. */
+	// 16 byte size
+	COMPACT_BE("CB", 0, 4, 8, 12, BIG_ENDIAN),
+	/** The padded le. */
+	// 16 byte size
+	PADDED_LE("PL", 0, 8, 16, 20, LITTLE_ENDIAN),
+	/** The padded be. */
+	// 24 byte size due to padding
 	PADDED_BE("PB", 0, 8, 16, 20, BIG_ENDIAN) // 24 byte size due to padding
 
-	/** The Constant NATIVE_ABI. */
- ;
+	;
 
+	/** The Constant NATIVE_ABI. */
 	private static final PcapHeaderABI NATIVE_ABI;
-	
+
 	/** The Constant NATIVE_ABI_OVERRIDE. */
 	private static final boolean NATIVE_ABI_OVERRIDE;
 
 	/** The Constant BITMASK16. */
 	private static final int BITMASK16 = 0xFFFFFFFF;
-	
+
 	/** The Constant MIN_FRAME_SIZE. */
 	private static final int MIN_FRAME_SIZE = 14;
-	
+
 	/** The Constant MAX_FRAME_SIZE. */
 	private static final int MAX_FRAME_SIZE = 64 * 1024;
-	
+
 	/** The Constant CAREFUL_LOCK. */
 	private static final Lock CAREFUL_LOCK = new ReentrantLock();
 
@@ -348,25 +351,25 @@ public enum PcapHeaderABI {
 
 	/** The tv usec offset. */
 	private final int tvUsecOffset;
-	
+
 	/** The capture length offset. */
 	private final int captureLengthOffset;
-	
+
 	/** The wire length offset. */
 	private final int wireLengthOffset;
 
 	/** The layout. */
 	private final OfInt layout;
-	
+
 	/** The header lenth. */
 	private final int headerLenth;
-	
+
 	/** The order. */
 	private final ByteOrder order;
-	
+
 	/** The abbr. */
 	private final String abbr;
-	
+
 	/**
 	 * Instantiates a new pcap header ABI.
 	 *
@@ -559,4 +562,40 @@ public enum PcapHeaderABI {
 		return wireLengthOffset;
 	}
 
+	/**
+	 * Reinterpret header.
+	 *
+	 * @param hdr   the hdr
+	 * @param arena the arena
+	 * @return the memory segment
+	 */
+	public MemorySegment reinterpretHeader(MemorySegment hdr, Arena arena) {
+		return hdr.reinterpret(headerLength(), arena, EMPTY_CLEANUP);
+	}
+
+	/**
+	 * Reinterpret packet.
+	 *
+	 * @param hdr   the hdr
+	 * @param data  the data
+	 * @param arena the arena
+	 * @return the memory segment
+	 */
+	public MemorySegment reinterpretPacket(MemorySegment hdr, MemorySegment data, Arena arena) {
+		int caplen = captureLength(hdr);
+
+		return data.reinterpret(caplen, arena, EMPTY_CLEANUP);
+	}
+	
+	/**
+	 * Reinterpret packet.
+	 *
+	 * @param caplen the caplen
+	 * @param data   the data
+	 * @param arena  the arena
+	 * @return the memory segment
+	 */
+	public MemorySegment reinterpretPacket(int caplen, MemorySegment data, Arena arena) {
+		return data.reinterpret(caplen, arena, EMPTY_CLEANUP);
+	}
 }

@@ -15,6 +15,8 @@
  */
 package org.jnetpcap;
 
+import static org.jnetpcap.internal.ForeignUtils.*;
+
 import java.lang.foreign.MemorySegment;
 import java.util.Collections;
 import java.util.List;
@@ -245,7 +247,7 @@ public sealed class Pcap1_2 extends Pcap1_0 permits Pcap1_5 {
 
 			/* Dereference to int[] address */
 			MemorySegment arrayAddress = POINTER_TO_POINTER1.get(ADDRESS, 0);
-			int[] array = arrayAddress.reinterpret(JAVA_INT.byteSize() * len, arena, __ ->{})
+			int[] array = arrayAddress.reinterpret(JAVA_INT.byteSize() * len, arena, EMPTY_CLEANUP)
 					.toArray(JAVA_INT);
 
 			/* Copy from native int[] to java int[] */

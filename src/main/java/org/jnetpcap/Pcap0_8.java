@@ -15,6 +15,8 @@
  */
 package org.jnetpcap;
 
+import static org.jnetpcap.internal.ForeignUtils.*;
+
 import java.lang.foreign.MemorySegment;
 import java.util.Collections;
 import java.util.List;
@@ -128,15 +130,6 @@ public sealed class Pcap0_8 extends Pcap0_7 permits Pcap0_9 {
 	private static final PcapForeignDowncall pcap_datalink_val_to_description;
 
 	/**
-	 * The Constant pcap_next_ex.
-	 *
-	 * @see {@code int pcap_next_ex (pcap_t *p, struct pcap_pkthdr **pkt_header,
-	 *      const u_char **pkt_data)}
-	 * @since libpcap 0.8
-	 */
-	private static final PcapForeignDowncall pcap_next_ex;
-
-	/**
 	 * The Constant pcap_list_datalinks.
 	 *
 	 * @see {@code int pcap_list_datalinks(pcap_t *p, int **dlt_buf)}
@@ -191,7 +184,6 @@ public sealed class Pcap0_8 extends Pcap0_7 permits Pcap0_9 {
 		pcap_breakloop                   = foreign.downcall("pcap_breakloop(A)V");
 		pcap_datalink_val_to_name        = foreign.downcall("pcap_datalink_val_to_name(I)A");
 		pcap_datalink_val_to_description = foreign.downcall("pcap_datalink_val_to_description(I)A");
-		pcap_next_ex                     = foreign.downcall("pcap_next_ex(AAA)I");
 		pcap_list_datalinks              = foreign.downcall("pcap_list_datalinks(AA)I");
 		pcap_free_datalinks              = foreign.downcall("pcap_free_datalinks(A)V");
 		
@@ -481,7 +473,7 @@ public sealed class Pcap0_8 extends Pcap0_7 permits Pcap0_9 {
 			/* int pcap_list_datalinks(pcap_t *p, int **dlt_buf) */
 			int count = pcap_list_datalinks.invokeInt(this::getErrorString, getPcapHandle(), super.POINTER_TO_POINTER1);
 			MemorySegment dltBuf = POINTER_TO_POINTER1.getAtIndex(ADDRESS, 0)
-					.reinterpret(JAVA_INT.byteAlignment() * count, arena, __ ->{});
+					.reinterpret(JAVA_INT.byteAlignment() * count, arena, EMPTY_CLEANUP);
 
 			int[] dlts = dltBuf.toArray(JAVA_INT);
 

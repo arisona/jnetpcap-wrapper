@@ -150,8 +150,8 @@ abstract class AbstractTestBase {
 			if (ref == null)
 				return null;
 
-			var hdr = new PcapHeader(abi, ref.header(), arena);
-			var pkt = ref.data().reinterpret(hdr.captureLength(), arena, __ ->{});
+			var hdr = new PcapHeader(abi, ref.header());
+			var pkt = ref.data();
 
 			return new TestPacket(abi, hdr.asMemorySegment(), pkt);
 		}

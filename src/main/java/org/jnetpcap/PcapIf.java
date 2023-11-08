@@ -265,7 +265,7 @@ public class PcapIf {
 		 * @param arena the scope
 		 */
 		SockAddr(MemorySegment addr, Arena arena) {
-			MemorySegment mseg = addr.reinterpret(SOCK_ADDR_LAYOUT.byteSize(), arena, __ ->{});
+			MemorySegment mseg = addr.reinterpret(SOCK_ADDR_LAYOUT.byteSize(), arena, EMPTY_CLEANUP);
 
 			this.family = Short.toUnsignedInt((short) familyHandle.get(mseg));
 			this.port = Short.toUnsignedInt((short) portHandle.get(mseg));
@@ -369,7 +369,7 @@ public class PcapIf {
 		List<PcapIf> list = new ArrayList<>();
 
 		while (!ForeignUtils.isNullAddress(next)) {
-			MemorySegment mseg = next.reinterpret(PCAP_IF_LAYOUT.byteSize(), arena, __ -> {});
+			MemorySegment mseg = next.reinterpret(PCAP_IF_LAYOUT.byteSize(), arena, EMPTY_CLEANUP);
 			list.add(new PcapIf(mseg, arena));
 
 			next = (MemorySegment) nextHandle.get(mseg);

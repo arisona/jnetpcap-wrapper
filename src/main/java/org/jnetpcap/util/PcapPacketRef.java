@@ -17,7 +17,6 @@ package org.jnetpcap.util;
 
 import java.lang.foreign.MemorySegment;
 
-import org.jnetpcap.constant.PcapConstants;
 import org.jnetpcap.internal.PcapHeaderABI;
 
 import static java.lang.foreign.ValueLayout.*;
@@ -39,7 +38,7 @@ public record PcapPacketRef(Object abi, MemorySegment header, MemorySegment data
 	 * @return the byte[] containing packet bytes
 	 */
 	public byte[] toArray() {
-		return toArray(0, PcapConstants.MAX_SNAPLEN);
+		return data.toArray(JAVA_BYTE);
 	}
 
 	/**
@@ -60,7 +59,7 @@ public record PcapPacketRef(Object abi, MemorySegment header, MemorySegment data
 	 * @return the capture length pcap header field value
 	 */
 	public int captureLength() {
-		return getAbi().captureLength(header);
+		return (int) data.byteSize();
 	}
 
 	/**
@@ -99,16 +98,6 @@ public record PcapPacketRef(Object abi, MemorySegment header, MemorySegment data
 	 * @return the byte[] containing the selected bytes
 	 */
 	public byte[] toArray(int offset, int length) {
-		int caplen = captureLength();
-
-		if ((length + offset) > caplen)
-			length = (caplen - offset);
-
-		MemorySegment data = this.data;
-
-		if (data.byteSize() == 0)
-			data = data.reinterpret(caplen);
-
 		return data
 				.asSlice(offset, length)
 				.toArray(JAVA_BYTE);
