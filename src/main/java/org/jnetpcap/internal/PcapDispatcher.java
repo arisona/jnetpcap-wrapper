@@ -31,7 +31,7 @@ import static java.lang.foreign.ValueLayout.*;
  * A proxy PcapHandler, which receives packets from native pcap handle and
  * forwards all packets to the sink java PcapHandler.
  */
-public class StandardPcapDispatcher implements PcapDispatcher {
+public class PcapDispatcher implements PacketDispatcher {
 
 	public interface NativeCallbackFunction {
 
@@ -104,7 +104,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 
 	static {
 
-		try (var foreign = new PcapForeignInitializer(StandardPcapDispatcher.class)) {
+		try (var foreign = new PcapForeignInitializer(PcapDispatcher.class)) {
 
 			// @formatter:off
 			pcap_geterr      = foreign.downcall("pcap_geterr(A)A"); //$NON-NLS-1$
@@ -176,7 +176,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	 * @param abi           the abi
 	 * @param breakDispatch the break dispatch
 	 */
-	public StandardPcapDispatcher(MemorySegment pcapHandle, PcapHeaderABI abi, Runnable breakDispatch) {
+	public PcapDispatcher(MemorySegment pcapHandle, PcapHeaderABI abi, Runnable breakDispatch) {
 		this.pcapHandle = pcapHandle;
 		this.abi = abi;
 		this.breakDispatch = breakDispatch;
@@ -206,7 +206,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	 *
 	 * @param headerAddress the header address
 	 * @return the int
-	 * @see org.jnetpcap.internal.PcapDispatcher#captureLength(java.lang.foreign.MemorySegment)
+	 * @see org.jnetpcap.internal.PacketDispatcher#captureLength(java.lang.foreign.MemorySegment)
 	 */
 	@Override
 	public int captureLength(MemorySegment headerAddress) {
@@ -225,7 +225,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * @see org.jnetpcap.internal.PcapDispatcher#dispatchNative(int,
+	 * @see org.jnetpcap.internal.PacketDispatcher#dispatchNative(int,
 	 *      org.jnetpcap.PcapHandler.NativeCallback,
 	 *      java.lang.foreign.MemorySegment)
 	 */
@@ -311,7 +311,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	 *
 	 * @param headerAddress the header address
 	 * @return the int
-	 * @see org.jnetpcap.internal.PcapDispatcher#headerLength(java.lang.foreign.MemorySegment)
+	 * @see org.jnetpcap.internal.PacketDispatcher#headerLength(java.lang.foreign.MemorySegment)
 	 */
 	@Override
 	public int headerLength(MemorySegment headerAddress) {
@@ -319,7 +319,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * @see org.jnetpcap.internal.PcapDispatcher#interrupt()
+	 * @see org.jnetpcap.internal.PacketDispatcher#interrupt()
 	 */
 	@Override
 	public final void interrupt() {
@@ -328,7 +328,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * @see org.jnetpcap.internal.PcapDispatcher#loopNative(int,
+	 * @see org.jnetpcap.internal.PacketDispatcher#loopNative(int,
 	 *      org.jnetpcap.PcapHandler.NativeCallback,
 	 *      java.lang.foreign.MemorySegment)
 	 */
@@ -369,7 +369,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	 *
 	 * @return the pcap packet ref
 	 * @throws PcapException the pcap exception
-	 * @see org.jnetpcap.internal.PcapDispatcher#next()
+	 * @see org.jnetpcap.internal.PacketDispatcher#next()
 	 */
 	@Override
 	public PcapPacketRef next() throws PcapException {
@@ -390,7 +390,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	 * @return the pcap packet ref
 	 * @throws PcapException    the pcap exception
 	 * @throws TimeoutException the timeout exception
-	 * @see org.jnetpcap.internal.PcapDispatcher#nextEx()
+	 * @see org.jnetpcap.internal.PacketDispatcher#nextEx()
 	 */
 	@Override
 	public PcapPacketRef nextEx() throws PcapException, TimeoutException {
@@ -441,7 +441,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	 * Pcap header ABI.
 	 *
 	 * @return the pcap header ABI
-	 * @see org.jnetpcap.internal.PcapDispatcher#pcapHeaderABI()
+	 * @see org.jnetpcap.internal.PacketDispatcher#pcapHeaderABI()
 	 */
 	@Override
 	public PcapHeaderABI pcapHeaderABI() {
@@ -449,7 +449,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * @see org.jnetpcap.internal.PcapDispatcher#setUncaughtExceptionHandler(java.lang.Thread.UncaughtExceptionHandler)
+	 * @see org.jnetpcap.internal.PacketDispatcher#setUncaughtExceptionHandler(java.lang.Thread.UncaughtExceptionHandler)
 	 */
 	@Override
 	public final void setUncaughtExceptionHandler(UncaughtExceptionHandler exceptionHandler) {

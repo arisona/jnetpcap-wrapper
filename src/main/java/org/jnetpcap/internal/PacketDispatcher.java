@@ -26,7 +26,7 @@ import org.jnetpcap.util.PcapPacketRef;
 /**
  * The Interface PcapDispatcher.
  */
-public interface PcapDispatcher extends AutoCloseable {
+public interface PacketDispatcher extends AutoCloseable {
 
 	/**
 	 * Capture length.

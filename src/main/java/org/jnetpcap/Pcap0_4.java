@@ -30,12 +30,12 @@ import org.jnetpcap.constant.PcapCode;
 import org.jnetpcap.constant.PcapConstants;
 import org.jnetpcap.constant.PcapDlt;
 import org.jnetpcap.internal.ForeignUtils;
-import org.jnetpcap.internal.PcapDispatcher;
+import org.jnetpcap.internal.PacketDispatcher;
 import org.jnetpcap.internal.PcapForeignDowncall;
 import org.jnetpcap.internal.PcapForeignInitializer;
 import org.jnetpcap.internal.PcapHeaderABI;
 import org.jnetpcap.internal.PcapStatRecord;
-import org.jnetpcap.internal.StandardPcapDispatcher;
+import org.jnetpcap.internal.PcapDispatcher;
 import org.jnetpcap.util.NetIp4Address;
 import org.jnetpcap.util.PcapPacketRef;
 
@@ -495,7 +495,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	 * pcap_loop and pcap_dispatch native calls. Other dispatchers may perform
 	 * additional processing on packets before dispatching to callback handlers.
 	 */
-	protected PcapDispatcher dispatcher;
+	protected PacketDispatcher dispatcher;
 
 	/**
 	 * Instantiates a new pcap 0 4.
@@ -506,7 +506,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	 */
 	protected Pcap0_4(MemorySegment pcapHandle, String name, PcapHeaderABI abi) {
 		super(pcapHandle, name, abi);
-		this.dispatcher = new StandardPcapDispatcher(getPcapHandle(), abi, this::breakloop);
+		this.dispatcher = new PcapDispatcher(getPcapHandle(), abi, this::breakloop);
 	}
 
 	/**
@@ -514,7 +514,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	 *
 	 * @param newDispatcher the new packet dispatcher implementation
 	 */
-	protected void setDispatcher(PcapDispatcher newDispatcher) {
+	protected void setDispatcher(PacketDispatcher newDispatcher) {
 		this.dispatcher.close(); // Close old dispatcher
 		this.dispatcher = Objects.requireNonNull(newDispatcher, "dispatcher");
 	}
@@ -524,7 +524,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	 *
 	 * @return the packet dispatcher implementation
 	 */
-	protected PcapDispatcher getDispatcher() {
+	protected PacketDispatcher getDispatcher() {
 		return dispatcher;
 	}
 
