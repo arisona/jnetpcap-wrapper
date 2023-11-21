@@ -230,7 +230,7 @@ public class PcapDispatcher implements PacketDispatcher {
 	 *      java.lang.foreign.MemorySegment)
 	 */
 	@Override
-	public final int dispatchNative(int count, NativeCallback handler, MemorySegment user) {
+	public int dispatchNative(int count, NativeCallback handler, MemorySegment user) {
 		this.userSink = handler;
 
 		return dispatchRaw(
@@ -333,7 +333,7 @@ public class PcapDispatcher implements PacketDispatcher {
 	 *      java.lang.foreign.MemorySegment)
 	 */
 	@Override
-	public final int loopNative(int count, NativeCallback handler, MemorySegment user) {
+	public int loopNative(int count, NativeCallback handler, MemorySegment user) {
 		this.userSink = handler;
 
 		return loopRaw(
