@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Sly Technologies Inc
+ * Copyright 2024 Sly Technologies Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.jnetpcap.constant.PcapOption;
 import org.jnetpcap.constant.PcapSrc;
 import org.jnetpcap.constant.PcapTStampPrecision;
 import org.jnetpcap.constant.PcapTstampType;
+import org.jnetpcap.internal.DelegatePcap;
 import org.jnetpcap.internal.PcapForeignInitializer;
 import org.jnetpcap.internal.PcapHeaderABI;
 import org.jnetpcap.util.NetIp4Address;
@@ -54,7 +55,7 @@ import static java.lang.foreign.ValueLayout.*;
  * @author Sly Technologies
  * @author repos@slytechs.com
  */
-public abstract sealed class Pcap implements AutoCloseable permits Pcap0_4 {
+public abstract sealed class Pcap implements AutoCloseable permits Pcap0_4, DelegatePcap {
 
 	/**
 	 * An interface which provides a hook into Pcap initialization process. Any
@@ -1654,6 +1655,17 @@ public abstract sealed class Pcap implements AutoCloseable permits Pcap0_4 {
 
 	/** The pcap header ABI. */
 	protected final PcapHeaderABI pcapHeaderABI;
+	
+	/**
+	 * Instantiates a new pcap.
+	 *
+	 * @param delegate the delegate
+	 * @param name     the name of this pcap handle.
+	 * @param abi      the abi
+	 */
+	protected Pcap(Pcap delegate) {
+		this(delegate.getPcapHandle(), delegate.getName(), delegate.pcapHeaderABI);
+	}
 
 	/**
 	 * Instantiates a new pcap.
