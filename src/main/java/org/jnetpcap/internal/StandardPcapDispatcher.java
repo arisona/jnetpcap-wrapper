@@ -132,6 +132,15 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	/** The abi. */
 	private final PcapHeaderABI abi;
 
+	/** The pointer to pointer1. */
+	private final MemorySegment POINTER_TO_POINTER1 = Arena.ofAuto().allocate(ADDRESS);
+
+	/** The pointer to pointer2. */
+	private final MemorySegment POINTER_TO_POINTER2 = Arena.ofAuto().allocate(ADDRESS);
+
+	/** The pcap header buffer. */
+	private final MemorySegment PCAP_HEADER_BUFFER = Arena.ofAuto().allocate(PcapHeaderABI.nativeAbi().headerLength());
+
 	/**
 	 * Instantiates a new standard pcap dispatcher.
 	 *
@@ -145,15 +154,6 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 		this.breakDispatch = breakDispatch;
 		this.arena = Arena.ofShared();
 		this.pcapCallbackStub = pcap_handler.virtualStubPointer(this, this.arena);
-	}
-
-	/**
-	 * Gets the last pcap error string.
-	 *
-	 * @return the err
-	 */
-	public final String geterr() {
-		return pcap_geterr.invokeString(pcapHandle);
 	}
 
 	/**
@@ -180,40 +180,25 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * @see org.jnetpcap.internal.PcapDispatcher#dispatchNative(int,
-	 *      org.jnetpcap.PcapHandler.NativeCallback,
-	 *      java.lang.foreign.MemorySegment)
+	 * Gets the last pcap error string.
+	 *
+	 * @return the err
 	 */
-	@Override
-	public final int dispatchNative(int count, NativeCallback handler, MemorySegment user) {
-		this.userSink = handler;
-
-		return dispatchRaw(
-				count,
-				pcapCallbackStub,
-				user);
+	public final String geterr() {
+		return pcap_geterr.invokeString(pcapHandle);
 	}
 
 	/**
-	 * Dispatch raw.
+	 * Dynamic non-pcap utility method to convert libpcap error code to a string, by
+	 * various fallback methods with an active pcap handle.
 	 *
-	 * @param count        the count
-	 * @param callbackFunc the callback func
-	 * @param userData     the user data
-	 * @return the int
+	 * @param error the code
+	 * @return the error string
 	 */
-	@Override
-	public final int dispatchRaw(int count, MemorySegment callbackFunc, MemorySegment userData) {
-		int result = pcap_dispatch.invokeInt(
-				pcapHandle,
-				count,
-				callbackFunc,
-				userData);
+	protected String getErrorString(int error) {
+		String msg = this.geterr();
 
-		if (interrupted)
-			handleInterrupt();
-
-		return result;
+		return msg;
 	}
 
 	/**
@@ -261,18 +246,55 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * @see org.jnetpcap.internal.PcapDispatcher#loopNative(int,
+	 * @see org.jnetpcap.internal.PcapDispatcher#invokeDispatchNativeCallback(int,
 	 *      org.jnetpcap.PcapHandler.NativeCallback,
 	 *      java.lang.foreign.MemorySegment)
 	 */
 	@Override
-	public final int loopNative(int count, NativeCallback handler, MemorySegment user) {
+	public final int invokeDispatchNativeCallback(int count, NativeCallback handler, MemorySegment user) {
 		this.userSink = handler;
 
-		return loopRaw(
+		return invokePcapDispatchFunction(
 				count,
 				pcapCallbackStub,
 				user);
+	}
+
+	/**
+	 * @see org.jnetpcap.internal.PcapDispatcher#invokeLoopNativeCallback(int,
+	 *      org.jnetpcap.PcapHandler.NativeCallback,
+	 *      java.lang.foreign.MemorySegment)
+	 */
+	@Override
+	public final int invokeLoopNativeCallback(int count, NativeCallback handler, MemorySegment user) {
+		this.userSink = handler;
+
+		return invokePcapLoopFunction(
+				count,
+				pcapCallbackStub,
+				user);
+	}
+
+	/**
+	 * Dispatch raw.
+	 *
+	 * @param count        the count
+	 * @param callbackFunc the callback func
+	 * @param userData     the user data
+	 * @return the int
+	 */
+	@Override
+	public final int invokePcapDispatchFunction(int count, MemorySegment callbackFunc, MemorySegment userData) {
+		int result = pcap_dispatch.invokeInt(
+				pcapHandle,
+				count,
+				callbackFunc,
+				userData);
+
+		if (interrupted)
+			handleInterrupt();
+
+		return result;
 	}
 
 	/**
@@ -284,7 +306,7 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	 * @return the int
 	 */
 	@Override
-	public final int loopRaw(int count, MemorySegment callbackFunc, MemorySegment userData) {
+	public final int invokePcapLoopFunction(int count, MemorySegment callbackFunc, MemorySegment userData) {
 		int result = pcap_loop.invokeInt(
 				pcapHandle,
 				count,
@@ -325,66 +347,20 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * Called on a native callback exception within the user handler.
+	 * Next.
 	 *
-	 * @param e the exception
+	 * @return the pcap packet ref
+	 * @throws PcapException the pcap exception
+	 * @see org.jnetpcap.internal.PcapDispatcher#next()
 	 */
 	@Override
-	public final void onNativeCallbackException(RuntimeException e) {
-		this.uncaughtException = e;
+	public PcapPacketRef next() throws PcapException {
+		MemorySegment hdr = PCAP_HEADER_BUFFER;
+		MemorySegment pkt = pcap_next.invokeObj(this::geterr, pcapHandle, hdr);
 
-		if (uncaughtExceptionHandler != null) {
-			var veto = VetoableExceptionHandler.wrap(uncaughtExceptionHandler);
-			if (veto.vetoableException(e)) {
-				this.uncaughtException = e;
-				interrupt();
-			}
-
-		} else {
-			this.uncaughtException = e;
-			interrupt();
-		}
-	}
-
-	/**
-	 * @see org.jnetpcap.internal.PcapDispatcher#setUncaughtExceptionHandler(java.lang.Thread.UncaughtExceptionHandler)
-	 */
-	@Override
-	public final void setUncaughtExceptionHandler(UncaughtExceptionHandler exceptionHandler) {
-		this.uncaughtExceptionHandler = exceptionHandler;
-	}
-
-	/**
-	 * Pcap header ABI.
-	 *
-	 * @return the pcap header ABI
-	 * @see org.jnetpcap.internal.PcapDispatcher#pcapHeaderABI()
-	 */
-	@Override
-	public PcapHeaderABI pcapHeaderABI() {
-		return this.abi;
-	}
-
-	/** The pointer to pointer1. */
-	private final MemorySegment POINTER_TO_POINTER1 = Arena.ofAuto().allocate(ADDRESS);
-
-	/** The pointer to pointer2. */
-	private final MemorySegment POINTER_TO_POINTER2 = Arena.ofAuto().allocate(ADDRESS);
-
-	/** The pcap header buffer. */
-	private final MemorySegment PCAP_HEADER_BUFFER = Arena.ofAuto().allocate(PcapHeaderABI.nativeAbi().headerLength());
-
-	/**
-	 * Dynamic non-pcap utility method to convert libpcap error code to a string, by
-	 * various fallback methods with an active pcap handle.
-	 *
-	 * @param error the code
-	 * @return the error string
-	 */
-	protected String getErrorString(int error) {
-		String msg = this.geterr();
-
-		return msg;
+		return (ForeignUtils.isNullAddress(pkt))
+				? null
+				: new PcapPacketRef(abi, hdr, pkt);
 	}
 
 	/**
@@ -416,19 +392,43 @@ public class StandardPcapDispatcher implements PcapDispatcher {
 	}
 
 	/**
-	 * Next.
+	 * Called on a native callback exception within the user handler.
 	 *
-	 * @return the pcap packet ref
-	 * @throws PcapException the pcap exception
-	 * @see org.jnetpcap.internal.PcapDispatcher#next()
+	 * @param e the exception
 	 */
 	@Override
-	public PcapPacketRef next() throws PcapException {
-		MemorySegment hdr = PCAP_HEADER_BUFFER;
-		MemorySegment pkt = pcap_next.invokeObj(this::geterr, pcapHandle, hdr);
+	public final void onNativeCallbackException(RuntimeException e) {
+		this.uncaughtException = e;
 
-		return (ForeignUtils.isNullAddress(pkt))
-				? null
-				: new PcapPacketRef(abi, hdr, pkt);
+		if (uncaughtExceptionHandler != null) {
+			var veto = VetoableExceptionHandler.wrap(uncaughtExceptionHandler);
+			if (veto.vetoableException(e)) {
+				this.uncaughtException = e;
+				interrupt();
+			}
+
+		} else {
+			this.uncaughtException = e;
+			interrupt();
+		}
+	}
+
+	/**
+	 * Pcap header ABI.
+	 *
+	 * @return the pcap header ABI
+	 * @see org.jnetpcap.internal.PcapDispatcher#pcapHeaderABI()
+	 */
+	@Override
+	public PcapHeaderABI pcapHeaderABI() {
+		return this.abi;
+	}
+
+	/**
+	 * @see org.jnetpcap.internal.PcapDispatcher#setUncaughtExceptionHandler(java.lang.Thread.UncaughtExceptionHandler)
+	 */
+	@Override
+	public final void setUncaughtExceptionHandler(UncaughtExceptionHandler exceptionHandler) {
+		this.uncaughtExceptionHandler = exceptionHandler;
 	}
 }

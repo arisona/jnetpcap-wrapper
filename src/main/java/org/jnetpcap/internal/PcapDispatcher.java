@@ -44,7 +44,7 @@ public interface PcapDispatcher extends NativeCallback, AutoCloseable {
 	 * @param user    the user
 	 * @return the int
 	 */
-	int dispatchNative(int count, NativeCallback handler, MemorySegment user);
+	int invokeDispatchNativeCallback(int count, NativeCallback handler, MemorySegment user);
 
 	/**
 	 * Dispatch raw.
@@ -54,7 +54,7 @@ public interface PcapDispatcher extends NativeCallback, AutoCloseable {
 	 * @param userData     the user data
 	 * @return the int
 	 */
-	int dispatchRaw(int count, MemorySegment callbackFunc, MemorySegment userData);
+	int invokePcapDispatchFunction(int count, MemorySegment callbackFunc, MemorySegment userData);
 
 	/**
 	 * Header length.
@@ -72,7 +72,7 @@ public interface PcapDispatcher extends NativeCallback, AutoCloseable {
 	 * @param user    the user
 	 * @return the int
 	 */
-	int loopNative(int count, NativeCallback handler, MemorySegment user);
+	int invokeLoopNativeCallback(int count, NativeCallback handler, MemorySegment user);
 
 	/**
 	 * Loop raw.
@@ -82,7 +82,7 @@ public interface PcapDispatcher extends NativeCallback, AutoCloseable {
 	 * @param userData     the user data
 	 * @return the int
 	 */
-	int loopRaw(int count, MemorySegment callbackFunc, MemorySegment userData);
+	int invokePcapLoopFunction(int count, MemorySegment callbackFunc, MemorySegment userData);
 
 	/**
 	 * Gets the uncaught exception.

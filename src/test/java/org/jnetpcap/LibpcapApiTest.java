@@ -377,7 +377,7 @@ class LibpcapApiTest extends AbstractTestBase {
 
 	/**
 	 * Test method for
-	 * {@link org.jnetpcap.Pcap#dispatchRaw(int, org.jnetpcap.PcapHandler.OfRawPacket, MemorySegment)}.
+	 * {@link org.jnetpcap.Pcap#invokePcapDispatchFunction(int, org.jnetpcap.PcapHandler.OfRawPacket, MemorySegment)}.
 	 */
 	@Test
 	@Tag("offline-capture")
@@ -946,7 +946,7 @@ class LibpcapApiTest extends AbstractTestBase {
 
 	/**
 	 * Test method for
-	 * {@link org.jnetpcap.Pcap#loopRaw(int, org.jnetpcap.PcapHandler.OfRawPacket, MemorySegment)}.
+	 * {@link org.jnetpcap.Pcap#invokePcapLoopFunction(int, org.jnetpcap.PcapHandler.OfRawPacket, MemorySegment)}.
 	 */
 	@Test
 	@Tag("offline-capture")

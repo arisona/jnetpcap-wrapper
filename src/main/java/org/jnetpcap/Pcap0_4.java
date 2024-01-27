@@ -640,7 +640,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
-		return dispatcher.dispatchNative(count, (u, h, p) -> {
+		return dispatcher.invokeDispatchNativeCallback(count, (u, h, p) -> {
 			int caplen = dispatcher.captureLength(h);
 			int hdrlen = dispatcher.headerLength(h);
 
@@ -681,7 +681,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 			MemorySegment pcap_dump_func = pcapDumper.addressOfDumpFunction();
 			MemorySegment pcap_dumper = pcapDumper.address();
 
-			return dispatcher.dispatchRaw(count, pcap_dump_func, pcap_dumper);
+			return dispatcher.invokePcapDispatchFunction(count, pcap_dump_func, pcap_dumper);
 		}
 	}
 
@@ -690,7 +690,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	 */
 	@Override
 	public int dispatch(int count, PcapHandler.NativeCallback handler, MemorySegment user) {
-		return dispatcher.dispatchNative(count, handler, user);
+		return dispatcher.invokeDispatchNativeCallback(count, handler, user);
 	}
 
 	/**
@@ -708,7 +708,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	public final <U> int dispatch(int count, PcapHandler.OfArray<U> handler, U user) {
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
-		return dispatcher.dispatchNative(count, (u, header, bytes) -> {
+		return dispatcher.invokeDispatchNativeCallback(count, (u, header, bytes) -> {
 			try (var arena = newArena()) {
 				PcapHeader hdr = new PcapHeader(super.pcapHeaderABI, header, arena);
 
@@ -825,7 +825,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 			MemorySegment pcap_dump_func = pcapDumper.addressOfDumpFunction();
 			MemorySegment pcap_dumper = pcapDumper.address();
 
-			return dispatcher.loopRaw(count, pcap_dump_func, pcap_dumper);
+			return dispatcher.invokePcapLoopFunction(count, pcap_dump_func, pcap_dumper);
 		}
 	}
 
@@ -834,7 +834,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	 */
 	@Override
 	public int loop(int count, PcapHandler.NativeCallback handler, MemorySegment user) {
-		return dispatcher.loopNative(count, handler, user);
+		return dispatcher.invokeLoopNativeCallback(count, handler, user);
 	}
 
 	/**
@@ -852,7 +852,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	public <U> int loop(int count, PcapHandler.OfArray<U> handler, U user) {
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
-		return dispatcher.loopNative(count, (u, header, bytes) -> {
+		return dispatcher.invokeLoopNativeCallback(count, (u, header, bytes) -> {
 			try (var arena = newArena()) {
 				PcapHeader hdr = new PcapHeader(super.pcapHeaderABI, header, arena);
 
@@ -874,7 +874,7 @@ public sealed class Pcap0_4 extends Pcap permits Pcap0_5 {
 	public <U> int loop(int count, PcapHandler.OfMemorySegment<U> handler, U user) {
 		MemorySegment aUser = (user instanceof MemorySegment addr) ? addr : NULL;
 
-		return dispatcher.loopNative(count, (u, h, p) -> {
+		return dispatcher.invokeLoopNativeCallback(count, (u, h, p) -> {
 			int caplen = dispatcher.captureLength(h);
 			int hdrlen = dispatcher.headerLength(h);
 
