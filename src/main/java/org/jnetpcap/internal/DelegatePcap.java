@@ -410,8 +410,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @see org.jnetpcap.Pcap#perror(java.lang.String)
 	 */
 	@Override
-	public Pcap perror(String prefix) {
-		return pcap.perror(prefix);
+	public T perror(String prefix) {
+		pcap.perror(prefix);
+		return us();
 	}
 
 	/**
@@ -431,10 +432,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setBufferSize(int)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setBufferSize(int bufferSize) throws PcapException {
-		return (T) pcap.setBufferSize(bufferSize);
+		return delegate1(pcap::setBufferSize, bufferSize);
 	}
 
 	/**
@@ -443,10 +443,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setDatalink(int)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setDatalink(int dlt) throws PcapException {
-		return (T) pcap.setDatalink(dlt);
+		return delegate1(pcap::setDatalink, dlt);
 	}
 
 	/**
@@ -455,10 +454,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setDatalink(java.util.Optional)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setDatalink(Optional<PcapDlt> dlt) throws PcapException {
-		return (T) pcap.setDatalink(dlt);
+		return delegate1(pcap::setDatalink, dlt);
 	}
 
 	/**
@@ -467,10 +465,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setDatalink(org.jnetpcap.constant.PcapDlt)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setDatalink(PcapDlt dlt) throws PcapException {
-		return (T) pcap.setDatalink(dlt);
+		return delegate1(pcap::setDatalink, dlt);
 	}
 
 	/**
@@ -479,10 +476,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setDirection(int)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setDirection(int dir) throws PcapException {
-		return (T) pcap.setDirection(dir);
+		return delegate1(pcap::setDirection, dir);
 	}
 
 	/**
@@ -491,10 +487,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setDirection(java.util.Optional)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setDirection(Optional<PcapDirection> dir) throws PcapException {
-		return (T) pcap.setDirection(dir);
+		return delegate1(pcap::setDirection, dir);
 	}
 
 	/**
@@ -503,10 +498,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setDirection(org.jnetpcap.constant.PcapDirection)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setDirection(PcapDirection dir) throws PcapException {
-		return (T) pcap.setDirection(dir);
+		return delegate1(pcap::setDirection, dir);
 	}
 
 	/**
@@ -515,10 +509,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setFilter(org.jnetpcap.BpFilter)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setFilter(BpFilter bpfProgram) throws PcapException {
-		return (T) pcap.setFilter(bpfProgram);
+		return delegate1(pcap::setFilter, bpfProgram);
 	}
 
 	/**
@@ -527,10 +520,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setFilter(java.util.Optional)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setFilter(Optional<BpFilter> bpfProgram) throws PcapException {
-		return (T) pcap.setFilter(bpfProgram);
+		return delegate1(pcap::setFilter, bpfProgram);
 	}
 
 	/**
@@ -539,10 +531,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setImmediateMode(boolean)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setImmediateMode(boolean enable) throws PcapException {
-		return (T) pcap.setImmediateMode(enable);
+		return delegate1(pcap::setImmediateMode, enable);
 	}
 
 	/**
@@ -551,10 +542,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setNonBlock(boolean)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setNonBlock(boolean blockMode) throws PcapException {
-		return (T) pcap.setNonBlock(blockMode);
+		return delegate1(pcap::setNonBlock, blockMode);
 	}
 
 	/**
@@ -563,10 +553,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setPromisc(boolean)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setPromisc(boolean promiscousMode) throws PcapException {
-		return (T) pcap.setPromisc(promiscousMode);
+		return delegate1(pcap::setPromisc, promiscousMode);
 	}
 
 	/**
@@ -575,10 +564,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setRfmon(boolean)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setRfmon(boolean rfMonitor) throws PcapException {
-		return (T) pcap.setRfmon(rfMonitor);
+		return delegate1(pcap::setRfmon, rfMonitor);
 	}
 
 	/**
@@ -587,10 +575,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setSnaplen(int)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setSnaplen(int snaplen) throws PcapException {
-		return (T) pcap.setSnaplen(snaplen);
+		return delegate1(pcap::setSnaplen, snaplen);
 	}
 
 	/**
@@ -599,10 +586,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setTimeout(int)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setTimeout(int timeoutInMillis) throws PcapException {
-		return (T) pcap.setTimeout(timeoutInMillis);
+		return delegate1(pcap::setTimeout, timeoutInMillis);
 	}
 
 	/**
@@ -611,10 +597,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setTstampPrecision(org.jnetpcap.constant.PcapTStampPrecision)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setTstampPrecision(PcapTStampPrecision precision) throws PcapException {
-		return (T) pcap.setTstampPrecision(precision);
+		return delegate1(pcap::setTstampPrecision, precision);
 	}
 
 	/**
@@ -623,10 +608,9 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @throws PcapException
 	 * @see org.jnetpcap.Pcap#setTstampType(org.jnetpcap.constant.PcapTstampType)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setTstampType(PcapTstampType type) throws PcapException {
-		return (T) pcap.setTstampType(type);
+		return delegate1(pcap::setTstampType, type);
 	}
 
 	/**
@@ -634,10 +618,10 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @return
 	 * @see org.jnetpcap.Pcap#setUncaughtExceptionHandler(java.util.function.Consumer)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setUncaughtExceptionHandler(Consumer<? super Throwable> exceptionHandler) {
-		return (T) pcap.setUncaughtExceptionHandler(exceptionHandler);
+		pcap.setUncaughtExceptionHandler(exceptionHandler);
+		return us();
 	}
 
 	/**
@@ -645,10 +629,10 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 	 * @return
 	 * @see org.jnetpcap.Pcap#setUncaughtExceptionHandler(java.lang.Thread.UncaughtExceptionHandler)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public T setUncaughtExceptionHandler(UncaughtExceptionHandler exceptionHandler) {
-		return (T) pcap.setUncaughtExceptionHandler(exceptionHandler);
+		pcap.setUncaughtExceptionHandler(exceptionHandler);
+		return us();
 	}
 
 	/**
@@ -680,4 +664,23 @@ public non-sealed class DelegatePcap<T extends Pcap> extends Pcap {
 		return pcap.toString();
 	}
 
+	/**
+	 * Adapted this reference.
+	 *
+	 * @return reference to this object
+	 */
+	@SuppressWarnings("unchecked")
+	private T us() {
+		return (T) this;
+	}
+	
+	protected interface PcapConsumer<U> {
+		void accept(U arg) throws PcapException;
+	}
+	
+	protected <U> T delegate1(PcapConsumer<U> exec, U arg1) throws PcapException {
+		exec.accept(arg1);
+		
+		return us();
+	}
 }
