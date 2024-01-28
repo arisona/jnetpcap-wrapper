@@ -18,13 +18,10 @@ package org.jnetpcap;
 import static org.jnetpcap.constant.SockAddrFamily.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.stream.Stream;
-
 import org.jnetpcap.PcapIf.PcapAddr;
 import org.jnetpcap.SockAddr.Inet6SockAddr;
 import org.junit.jupiter.api.Assumptions;

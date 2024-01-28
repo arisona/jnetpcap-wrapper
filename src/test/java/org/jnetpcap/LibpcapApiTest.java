@@ -33,8 +33,6 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
-
 import org.jnetpcap.Pcap.LibraryPolicy;
 import org.jnetpcap.SockAddr.InetSockAddr;
 import org.jnetpcap.constant.PcapCode;
